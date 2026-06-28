@@ -1,7 +1,7 @@
 # MRI/fMRI Research Toolkit — 项目介绍
 
 > 一套为核磁共振与功能磁共振研究打造的 AI 智能体工具包  
-> **27 Skills · 7 Agent · 9 Workflow · 89+ 提示词 · 继承自 BCI Research Toolkit**
+> **27 Skills · 7 Agent · 9 Workflow · 89+ 提示词**
 
 ## 🚀 快速开始
 
