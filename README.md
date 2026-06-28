@@ -1,7 +1,7 @@
 # MRI/fMRI Research Toolkit — 项目介绍
 
 > 一套为核磁共振与功能磁共振研究打造的 AI 智能体工具包  
-> **26 Skills · 7 Agent · 7 Workflow · 89+ 提示词 · 继承自 BCI Research Toolkit**
+> **27 Skills · 7 Agent · 9 Workflow · 89+ 提示词 · 继承自 BCI Research Toolkit**
 
 ## 🚀 快速开始
 
@@ -33,7 +33,7 @@ bci-research-toolkit          mri-research-toolkit
       ├── 89+ 提示词 ←───共享────→ 89+ 提示词
       ├── 13 BCI Skills            ├── 8 MRI Skills
       ├── 7 BCI Agent              ├── 7 MRI Agent
-      └── 11 BCI Workflow          └── 7 MRI Workflow
+      └── 11 BCI Workflow          └── 9 MRI Workflow
 ```
 
 ---
@@ -59,7 +59,7 @@ bci-research-toolkit          mri-research-toolkit
 | **MRI Skills** | 8 | fMRIPrep预处理 · GLM · 静息态FC · 图论 · DTI · 结构 · nilearn · 深度学习fMRI |
 | **论文 Skills** | 18 | 从 BCI 项目复用（写作/润色/翻译/引用/审稿回复/LaTeX等） |
 | **MRI Agent** | 7 | 预处理/GLM/连接/DTI/结构/文献/nilearn代码审查 |
-| **Workflow** | 7 | 预处理/GLM/静息态FC/图论/DTI/结构/文献综述 |
+| **Workflow** | 9 | 预处理/GLM/静息态FC/图论/DTI/结构/文献综述/数据桥接/nilearn执行 |
 | **提示词库** | 89+ | academic-ai-prompt-main v2.1（论文写作/选题/查找/综述） |
 | **文献支撑** | 20 篇 | Nature Methods/NeuroImage/PNAS 等顶刊（2020-2026 为主） |
 
@@ -76,7 +76,7 @@ bci-research-toolkit          mri-research-toolkit
 | fmri-nilearn | Nilearn team 2024 | Python 替代 SPM/FSL |
 | fmri-deep-learning | Thomas 2024 *Nat Biomed Eng*; Jiang 2024 *Nat Mach Intell* | BrainLM/Neuro-VLM |
 
-### 7 个预设 Workflow
+### 9 个预设 Workflow
 
 | Workflow | 输入 | 产出 |
 |----------|------|------|
@@ -87,6 +87,8 @@ bci-research-toolkit          mri-research-toolkit
 | DTI 分析 | DWI + b-value | QSIprep+TBSS方案 |
 | 结构分析 | T1 数据 | VBM/FreeSurfer方案 |
 | MRI 文献综述 | 研究主题 | 检索策略 + 方法回顾 + 综述稿 |
+| 数据桥接读取 | NIfTI 文件 | 元数据诊断 + 质量报告 |
+| nilearn 执行 | BOLD + 分析类型 | 实际分析结果 + 统计图 |
 
 ---
 
