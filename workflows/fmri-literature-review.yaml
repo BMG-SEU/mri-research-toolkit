@@ -1,0 +1,11 @@
+name: "MRI 方法学文献综述"
+agents_dir: "./agents"
+llm: {provider: "deepseek", model: "deepseek-chat", timeout: 240000}
+concurrency: 1
+inputs:
+  - {name: "topic", required: true, description: "研究方向（如 resting-state ICA reproducibility / deep learning fMRI preprocessing）"}
+steps:
+  - {id: "search", role: "fmri-literature-reviewer", skill: "literature-search", task: "为 {{topic}} 设计系统化文献检索策略（PubMed + OpenNeuro + NeuroSynth），包含关键词和纳入标准", output: "search_strategy"}
+  - {id: "classify", role: "fmri-literature-reviewer", task: "分类检索结果：按方法/工具/年份，识别该领域的标杆论文和最新突破（2024-2025）", output: "classification", depends_on: ["search"]}
+  - {id: "critique", role: "fmri-literature-reviewer", task: "评估方法学质量：{{classification}}。根据 COBIDAS 标准、可复现性、样本量，指出领域内共识与争议", output: "critique", depends_on: ["classify"]}
+  - {id: "write", role: "fmri-literature-reviewer", task: "撰写综述初稿：{{search_strategy}} + {{classification}} + {{critique}}。含引用编号和参考文献列表", output_file: "mri_literature_review.md", depends_on: ["critique"]}

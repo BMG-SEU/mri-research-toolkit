@@ -1,0 +1,12 @@
+name: "图论脑网络分析"
+agents_dir: "./agents"
+llm: {provider: "deepseek", model: "deepseek-chat", timeout: 180000}
+concurrency: 1
+inputs:
+  - {name: "conn_matrix", required: true, description: "连接矩阵文件或描述（如何构建的、阈值）"}
+  - {name: "metric_list", required: false, default: "degree/clustering/path_length/smallworld/modularity", description: "需要的度量"}
+steps:
+  - {id: "threshold", role: "fmri-connectivity-analyst", skill: "fmri-graph-theory", task: "为连接矩阵推荐阈值策略（绝对值/比例/MST）并说明理由。矩阵：{{conn_matrix}}", output: "threshold_plan"}
+  - {id: "metric_selection", role: "fmri-connectivity-analyst", task: "根据 {{threshold_plan}} 和图论标准（Rubinov & Sporns 2010），为以下度量设计分析方案：{{metric_list}}", output: "metric_plan", depends_on: ["threshold"]}
+  - {id: "code_gen", role: "fmri-code-reviewer", task: "生成 nilearn/bctpy 图论分析代码：{{metric_plan}}", output_file: "graph_theory_analysis.py", depends_on: ["metric_selection"]}
+  - {id: "summary", role: "fmri-connectivity-analyst", task: "汇总：{{threshold_plan}} + {{metric_plan}}", depends_on: ["threshold", "metric_selection", "code_gen"]}

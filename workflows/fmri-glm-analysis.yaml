@@ -1,0 +1,14 @@
+# 任务态 fMRI GLM 分析工作流
+name: "任务态 fMRI GLM 分析"
+agents_dir: "./agents"
+llm: {provider: "deepseek", model: "deepseek-chat", timeout: 180000}
+concurrency: 1
+inputs:
+  - {name: "design_desc", required: true, description: "实验设计描述（事件相关/组块，条件数）"}
+  - {name: "contrasts", required: true, description: "对比条件（如 A>B, B>A）"}
+  - {name: "tr", required: true, description: "TR（重复时间，如 2s）"}
+steps:
+  - {id: "design_matrix", role: "fmri-glm-analyst", skill: "fmri-glm-analysis", task: "根据 {{design_desc}}（TR={{tr}}s）构建 GLM 设计矩阵方案", output: "design_plan"}
+  - {id: "correction", role: "fmri-glm-analyst", task: "根据 {{design_plan}} 推荐多重比较校正方法（对比：{{contrasts}}）。说明为何选此方法并参考 Eklund(2016)", output: "correction_plan", depends_on: ["design_matrix"]}
+  - {id: "code_gen", role: "fmri-code-reviewer", task: "根据 {{design_plan}} + {{correction_plan}} 生成 nilearn GLM 代码", output_file: "glm_analysis.py", depends_on: ["correction"]}
+  - {id: "summary", role: "fmri-glm-analyst", task: "汇总：{{design_plan}} + {{correction_plan}}", depends_on: ["design_matrix", "correction", "code_gen"]}

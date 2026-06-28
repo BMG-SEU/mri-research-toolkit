@@ -1,0 +1,13 @@
+name: "DTI 扩散成像分析"
+agents_dir: "./agents"
+llm: {provider: "deepseek", model: "deepseek-chat", timeout: 180000}
+concurrency: 1
+inputs:
+  - {name: "dwi_dir", required: true, description: "DWI/NIfTI 数据路径"}
+  - {name: "bval", required: true, description: "b-value（如 1000 或 2000）"}
+  - {name: "method", required: false, default: "TBSS", description: "TBSS / tractography / connectometry"}
+steps:
+  - {id: "prep", role: "fmri-dti-analyst", skill: "fmri-dti-analysis", task: "评估 DWI 数据 {{dwi_dir}}（b={{bval}}），推荐 QSIprep 预处理参数", output: "prep_plan"}
+  - {id: "analysis", role: "fmri-dti-analyst", task: "设计 {{method}} 分析方案：{{prep_plan}}", output: "analysis_plan", depends_on: ["prep"]}
+  - {id: "code_gen", role: "fmri-code-reviewer", task: "生成 DTI 分析代码：{{analysis_plan}}", output_file: "dti_analysis.py", depends_on: ["analysis"]}
+  - {id: "summary", role: "fmri-dti-analyst", task: "汇总：{{prep_plan}} + {{analysis_plan}}", depends_on: ["prep", "analysis", "code_gen"]}

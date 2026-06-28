@@ -1,0 +1,14 @@
+# 静息态功能连接分析工作流
+name: "静息态功能连接分析"
+agents_dir: "./agents"
+llm: {provider: "deepseek", model: "deepseek-chat", timeout: 180000}
+concurrency: 1
+inputs:
+  - {name: "data_dir", required: true, description: "BIDS 数据集路径"}
+  - {name: "roi_list", required: false, description: "感兴趣区（如 DMN/VIS），留空则全脑"}
+  - {name: "method", required: false, default: "seed-based", description: "种子点/ICA/图论/动态"}
+steps:
+  - {id: "method_choice", role: "fmri-connectivity-analyst", skill: "fmri-resting-fc", task: "推荐连接分析方法。数据：{{data_dir}}，ROI：{{roi_list}}，方法：{{method}}", output: "method_recommendation"}
+  - {id: "denoising", role: "fmri-connectivity-analyst", task: "根据 {{method_recommendation}} 设计去噪策略（aCompCor/ICA-AROMA/Scrubbing/GSR 决策）", output: "denoising_plan", depends_on: ["method_choice"]}
+  - {id: "code_gen", role: "fmri-code-reviewer", task: "根据 {{denoising_plan}} 生成 nilearn 功能连接分析代码", output_file: "resting_fc_analysis.py", depends_on: ["denoising"]}
+  - {id: "summary", role: "fmri-connectivity-analyst", task: "汇总：{{method_recommendation}} + {{denoising_plan}}", depends_on: ["method_choice", "denoising", "code_gen"]}

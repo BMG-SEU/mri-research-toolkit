@@ -1,0 +1,11 @@
+name: "结构 MRI 形态学分析"
+agents_dir: "./agents"
+llm: {provider: "deepseek", model: "deepseek-chat", timeout: 180000}
+concurrency: 1
+inputs:
+  - {name: "t1_dir", required: true, description: "T1 结构像数据路径"}
+  - {name: "method", required: false, default: "VBM", description: "VBM / FreeSurfer / SynthSeg / DBM"}
+steps:
+  - {id: "prep", role: "fmri-structural-analyst", skill: "fmri-structural", task: "评估 T1 数据 {{t1_dir}}，推荐 {{method}} 预处理与分析方案", output: "prep_plan"}
+  - {id: "code_gen", role: "fmri-code-reviewer", task: "生成分析代码：{{prep_plan}}", output_file: "structural_analysis.sh", depends_on: ["prep"]}
+  - {id: "summary", role: "fmri-structural-analyst", task: "汇总：{{prep_plan}}", depends_on: ["prep", "code_gen"]}

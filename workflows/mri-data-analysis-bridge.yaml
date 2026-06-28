@@ -1,0 +1,41 @@
+name: "MRI 数据实际读取与分析（AO规划 + Claude Code执行）"
+agents_dir: "./agents"
+llm: {provider: "deepseek", model: "deepseek-chat", timeout: 600000}
+concurrency: 1
+inputs:
+  - {name: "file_path", required: true, description: "NIfTI 文件路径（.nii 或 .nii.gz）"}
+  - {name: "analysis_goal", required: false, default: "全面质量评估", description: "分析目标"}
+steps:
+  - id: "read_metadata"
+    role: "fmri-code-reviewer"
+    task: |
+      ## Claude Code 读取实际 NIfTI 文件
+      用 Python (nibabel) 读取文件并提取所有元数据：{{file_path}}
+      ```python
+      import nibabel as nib
+      img = nib.load('{{file_path}}')
+      print(f"形状: {img.shape}")
+      print(f"体素大小: {img.header.get_zooms()}")
+      print(f"数据类型: {img.get_data_dtype()}")
+      print(f"仿射矩阵: {img.affine}")
+      print(f"TR: {img.header.get_zooms()[3] if len(img.shape)>3 else 'N/A (3D)'}")
+      ```
+      运行以上代码，粘贴全部输出。分析目标：{{analysis_goal}}
+    llm: {provider: "claude-code", model: "claude-sonnet-4-5", timeout: 300000}
+    output: "raw_metadata"
+  - id: "analyze_quality"
+    role: "fmri-preprocessor"
+    task: |
+      基于真实文件的元数据评估数据质量：{{raw_metadata}}。
+      1) 数据完整性（维度/体素/TR）
+      2) 是否3D/4D
+      3) {{analysis_goal}} 可行性
+    output: "quality_report"
+    depends_on: ["read_metadata"]
+  - id: "recommend_plan"
+    role: "fmri-preprocessor"
+    skill: "fmri-preprocessing"
+    task: |
+      根据 {{quality_report}} 推荐针对真实文件的处理方案。含可直接运行的 nilearn 代码（用到真实路径 {{file_path}}）
+    output_file: "analysis_plan_for_real_data.md"
+    depends_on: ["analyze_quality"]

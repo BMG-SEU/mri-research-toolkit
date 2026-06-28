@@ -1,0 +1,49 @@
+name: "nilearn 实际执行 — fMRI 分析（AO规划 + Claude Code执行）"
+agents_dir: "./agents"
+llm: {provider: "deepseek", model: "deepseek-chat", timeout: 600000}
+concurrency: 1
+inputs:
+  - {name: "bold_file", required: true, description: "BOLD NIfTI 文件路径"}
+  - {name: "mask_file", required: false, description: "脑模板文件路径（如不提供则自动生成）"}
+  - {name: "analysis", required: false, default: "seed-based FC", description: "分析类型：seed-based / ICA / GLM"}
+steps:
+  - id: "plan"
+    role: "fmri-connectivity-analyst"
+    skill: "fmri-resting-fc"
+    task: |
+      为 {{bold_file}} 规划 {{analysis}} 分析方案（含 nilearn 代码）
+    output: "analysis_plan"
+  - id: "execute"
+    role: "fmri-code-reviewer"
+    task: |
+      ## Claude Code 实际执行 nilearn 分析
+      文件：{{bold_file}}，模板：{{mask_file}}
+      分析方案：{{analysis_plan}}
+      
+      ```python
+      import nibabel as nib
+      from nilearn.maskers import NiftiMasker
+      from nilearn.connectome import ConnectivityMeasure
+      from nilearn import plotting
+      import numpy as np
+      
+      img = nib.load('{{bold_file}}')
+      print(f"Loading: {img.shape}")
+      masker = NiftiMasker()
+      ts = masker.fit_transform('{{bold_file}}')
+      print(f"Time series: {ts.shape}")
+      
+      corr = ConnectivityMeasure(kind='correlation')
+      matrix = corr.fit_transform([ts])[0]
+      plotting.plot_matrix(matrix)
+      plt.savefig('connectivity_matrix.png')
+      print("✅ 完成")
+      ```
+      实际运行以上代码，贴出完整输出。如有报错自行修复（install/syntax/路径）。
+    llm: {provider: "claude-code", model: "claude-sonnet-4-5", timeout: 300000}
+    depends_on: ["plan"]
+  - id: "summary"
+    role: "fmri-connectivity-analyst"
+    task: |
+      汇总执行结果 + 统计发现 + 图表输出路径
+    depends_on: ["execute"]

@@ -1,0 +1,13 @@
+# fMRI 预处理规划工作流
+name: "fMRI 预处理方案"
+agents_dir: "./agents"
+llm: {provider: "deepseek", model: "deepseek-chat", timeout: 180000}
+concurrency: 1
+inputs:
+  - {name: "data_dir", required: true, description: "BIDS 数据集路径"}
+  - {name: "scan_type", required: false, default: "resting-state", description: "扫描类型"}
+steps:
+  - {id: "assess", role: "fmri-preprocessor", skill: "fmri-preprocessing", task: "评估 BIDS 数据 {{data_dir}} 的组织结构，推荐预处理 Pipeline。扫描类型：{{scan_type}}", output: "assessment"}
+  - {id: "plan", role: "fmri-preprocessor", task: "基于 {{assessment}}，给出完整 fMRIPrep 参数方案（FD阈值/FWHM/去噪策略/输出空间）", output: "preproc_plan", depends_on: ["assess"]}
+  - {id: "commands", role: "fmri-code-reviewer", task: "根据 {{preproc_plan}} 生成可执行的 fMRIPrep 命令和 XCP-D 后处理命令", output_file: "fmriprep_commands.sh", depends_on: ["plan"]}
+  - {id: "summary", role: "fmri-preprocessor", task: "汇总预处理方案：{{assessment}} + {{preproc_plan}}", depends_on: ["assess", "plan", "commands"]}
